@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright Myrrix Ltd
+ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <parent>
+    <groupId>net.myrrix</groupId>
+    <artifactId>myrrix-enterprise</artifactId>
+    <version>1.0.2-SNAPSHOT</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>myrrix-store-s3</artifactId>
+  <packaging>jar</packaging>
+  <name>Myrrix Store S3</name>
+  <version>1.0.2-SNAPSHOT</version>
+  <description>Myrrix storage implementation for S3</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk</artifactId>
+      <version>1.6.7</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.1.5</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>2.1.5</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.1.5</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.myrrix</groupId>
+      <artifactId>myrrix-store</artifactId>
+      <version>1.0.2-SNAPSHOT</version>
+    </dependency>
+    
+    <!-- updates some dependencies -->
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.8</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.3.1</version>
+      <scope>runtime</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore</artifactId>
+      <version>4.3</version>
+      <scope>runtime</scope>
+    </dependency>
+    
+  </dependencies>
+
+</project>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright Myrrix Ltd
+ -->
+<web-app version="3.0"
+        xmlns="http://java.sun.com/xml/ns/javaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+
+  <description>Myrrix Computation Layer web application</description>
+  <display-name>Myrrix</display-name>
+
+  <distributable/>
+
+  <listener>
+    <listener-class>net.myrrix.batch.web.InitListener</listener-class>
+  </listener>
+
+  <servlet>
+    <servlet-name>index_jspx</servlet-name>
+    <servlet-class>net.myrrix.batch.web.index_jspx</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet>
+      <servlet-name>status_jspx</servlet-name>
+      <servlet-class>net.myrrix.batch.web.status_jspx</servlet-class>
+      <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet>
+    <servlet-name>error_jspx</servlet-name>
+    <servlet-class>net.myrrix.batch.web.error_jspx</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet>
+    <servlet-name>LogServlet</servlet-name>
+    <servlet-class>net.myrrix.batch.web.servlets.LogServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet>
+    <servlet-name>PeriodicRunnerServlet</servlet-name>
+    <servlet-class>net.myrrix.batch.web.servlets.PeriodicRunnerServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>status_jspx</servlet-name>
+    <url-pattern>/status.jspx</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>error_jspx</servlet-name>
+    <url-pattern>/error.jspx</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+      <servlet-name>index_jspx</servlet-name>
+      <url-pattern>/index.jspx</url-pattern>
+    </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>LogServlet</servlet-name>
+    <url-pattern>/log.txt</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>PeriodicRunnerServlet</servlet-name>
+    <url-pattern>/periodicRunner/*</url-pattern>
+  </servlet-mapping>
+
+  <welcome-file-list>
+    <welcome-file>index.jspx</welcome-file>
+  </welcome-file-list>
+
+  <error-page>
+    <exception-type>java.lang.Throwable</exception-type>
+    <location>/error.jspx</location>
+  </error-page>
+  <error-page>
+    <error-code>400</error-code>
+    <location>/error.jspx</location>
+  </error-page>
+  <error-page>
+    <error-code>401</error-code>
+    <location>/error.jspx</location>
+  </error-page>
+  <error-page>
+    <error-code>404</error-code>
+    <location>/error.jspx</location>
+  </error-page>
+  <error-page>
+    <error-code>405</error-code>
+    <location>/error.jspx</location>
+  </error-page>
+  <error-page>
+    <error-code>500</error-code>
+    <location>/error.jspx</location>
+  </error-page>
+  <error-page>
+    <error-code>503</error-code>
+    <location>/error.jspx</location>
+  </error-page>
+
+</web-app>

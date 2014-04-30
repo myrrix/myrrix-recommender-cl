@@ -1,0 +1,202 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "Myrrix Computation Layer and Serving Layer CloudFormation configuration",
+
+  "Parameters" : {
+    "SLInstanceType" : {
+      "Description" : "Type of EC2 instance to launch",
+      "Type" : "String",
+      "Default" : "m1.medium",
+      "AllowedValues" : [
+        "m1.medium", "m1.large", "m1.xlarge", "m2.xlarge", "m2.2xlarge", "m2.4xlarge",
+        "m3.xlarge", "m3.2xlarge", "c1.medium", "c1.xlarge", "cc2.8xlarge", "cr1.8xlarge", 
+        "hi1.4xlarge", "hs1.8xlarge"
+      ]
+    },
+    "AccessKey" : {
+      "Description" : "AWS Access Key",
+      "Type" : "String",
+      "AllowedPattern": "[^ ]+",      
+      "NoEcho": "true"
+    },
+    "SecretKey" : {
+      "Description" : "AWS Secret Key",
+      "AllowedPattern": "[^ ]+",      
+      "Type" : "String",
+      "NoEcho": "true"      
+    },
+    "MyrrixBucket" : {
+      "Description" : "S3 bucket to use with Myrrix",
+      "Type" : "String"
+    },
+    "MyrrixInstanceID" : {
+      "Description" : "Instance ID within bucket to use",
+      "Type" : "String"
+    },
+    "SLAdditionalArgs" : {
+      "Description" : "Additional arguments to the Myrrix Serving Layer. Optional. Due to Amazon limitations, leave value as a single space for no arguments.",
+      "Type" : "String",
+      "Default" : " "
+    },
+    "CLAdditionalArgs" : {
+      "Description" : "Additional arguments to the Myrrix Computation Layer. Optional. Due to Amazon limitations, leave value as a single space for no arguments.",
+      "Type" : "String",
+      "Default" : " "
+    }
+   },
+
+  "Mappings" : {
+    "ServingLayerRegionMap" : {
+      "us-east-1" :      { "AMI" : "ami-2c631c45" },
+      "us-west-1" :      { "AMI" : "ami-de59719b" },
+      "us-west-2" :      { "AMI" : "ami-0172e131" },
+      "eu-west-1" :      { "AMI" : "ami-9deff3e9" },
+      "ap-southeast-1" : { "AMI" : "ami-d8a6ef8a" },
+      "ap-southeast-2" : { "AMI" : "ami-952bb8af" },
+      "ap-northeast-1" : { "AMI" : "ami-ab1084aa" },
+      "sa-east-1" :      { "AMI" : "ami-bc0faaa1" }
+    },
+    "ComputationLayerRegionMap" : {
+      "us-east-1" :      { "AMI" : "ami-86631cef" },
+      "us-west-1" :      { "AMI" : "ami-d0597195" },
+      "us-west-2" :      { "AMI" : "ami-1d72e12d" },
+      "eu-west-1" :      { "AMI" : "ami-afeff3db" },
+      "ap-southeast-1" : { "AMI" : "ami-daa6ef88" },
+      "ap-southeast-2" : { "AMI" : "ami-972bb8ad" },
+      "ap-northeast-1" : { "AMI" : "ami-a51084a4" },
+      "sa-east-1" :      { "AMI" : "ami-820faa9f" }
+    }
+  },
+
+  "Resources" : {
+
+    "MyrrixSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "HTTP/HTTPS access",
+        "SecurityGroupIngress" : [
+          { "IpProtocol" : "tcp",
+            "FromPort" : "80",
+            "ToPort" : "80",
+            "CidrIp" : "0.0.0.0/0"
+          },
+          { "IpProtocol" : "tcp",
+            "FromPort" : "443",
+            "ToPort" : "443",
+            "CidrIp" : "0.0.0.0/0"
+          }
+        ]
+      }
+    },
+
+    "ServingLayerInstance0" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "ImageId" : { "Fn::FindInMap" : [ "ServingLayerRegionMap", { "Ref" : "AWS::Region" }, "AMI" ]},
+        "InstanceType" : { "Ref" : "SLInstanceType" },
+        "SecurityGroups" : [ { "Ref" : "MyrrixSecurityGroup" } ],
+        "Tags" : [
+          { "Key" : "myrrix-partition", "Value" : "0" },
+          { "Key" : "myrrix-bucket", "Value" : { "Ref" : "MyrrixBucket" } },
+          { "Key" : "myrrix-instanceID", "Value" : { "Ref" : "MyrrixInstanceID" } }
+        ],
+        "UserData" : { "Fn::Base64" :
+          { "Fn::Join" : [ "", [
+            "-Dstore.aws.accessKey=", { "Ref" : "AccessKey" }, " ",
+            "-Dstore.aws.secretKey=", { "Ref" : "SecretKey" }, " ",
+            "--bucket=", { "Ref" : "MyrrixBucket" }, " ",
+            "--instanceID=", { "Ref" : "MyrrixInstanceID" }, " ",
+            "--partition=0 ",
+            "--allPartitions=auto ",
+            { "Ref" : "SLAdditionalArgs" }
+          ] ] }
+        }
+      }
+    },
+
+    "ServingLayerInstance1" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "ImageId" : { "Fn::FindInMap" : [ "ServingLayerRegionMap", { "Ref" : "AWS::Region" }, "AMI" ]},
+        "InstanceType" : { "Ref" : "SLInstanceType" },
+        "SecurityGroups" : [ { "Ref" : "MyrrixSecurityGroup" } ],
+        "Tags" : [
+          { "Key" : "myrrix-partition", "Value" : "0" },
+          { "Key" : "myrrix-bucket", "Value" : { "Ref" : "MyrrixBucket" } },
+          { "Key" : "myrrix-instanceID", "Value" : { "Ref" : "MyrrixInstanceID" } }
+        ],
+        "UserData" : { "Fn::Base64" :
+          { "Fn::Join" : [ "", [
+            "-Dstore.aws.accessKey=", { "Ref" : "AccessKey" }, " ",
+            "-Dstore.aws.secretKey=", { "Ref" : "SecretKey" }, " ",
+            "--bucket=", { "Ref" : "MyrrixBucket" }, " ",
+            "--instanceID=", { "Ref" : "MyrrixInstanceID" }, " ",
+            "--partition=0 ",
+            "--allPartitions=auto ",
+            { "Ref" : "SLAdditionalArgs" }
+          ] ] }
+        }
+      }
+    },
+
+    "ServingLayerInstance2" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "ImageId" : { "Fn::FindInMap" : [ "ServingLayerRegionMap", { "Ref" : "AWS::Region" }, "AMI" ]},
+        "InstanceType" : { "Ref" : "SLInstanceType" },
+        "SecurityGroups" : [ { "Ref" : "MyrrixSecurityGroup" } ],
+        "Tags" : [
+          { "Key" : "myrrix-partition", "Value" : "0" },
+          { "Key" : "myrrix-bucket", "Value" : { "Ref" : "MyrrixBucket" } },
+          { "Key" : "myrrix-instanceID", "Value" : { "Ref" : "MyrrixInstanceID" } }
+        ],
+        "UserData" : { "Fn::Base64" :
+          { "Fn::Join" : [ "", [
+            "-Dstore.aws.accessKey=", { "Ref" : "AccessKey" }, " ",
+            "-Dstore.aws.secretKey=", { "Ref" : "SecretKey" }, " ",
+            "--bucket=", { "Ref" : "MyrrixBucket" }, " ",
+            "--instanceID=", { "Ref" : "MyrrixInstanceID" }, " ",
+            "--partition=0 ",
+            "--allPartitions=auto ",
+            { "Ref" : "SLAdditionalArgs" }
+          ] ] }
+        }
+      }
+    },
+
+    "ComputationLayerInstance" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "ImageId" : { "Fn::FindInMap" : [ "ComputationLayerRegionMap", { "Ref" : "AWS::Region" }, "AMI" ]},
+        "InstanceType" : "m1.small",
+        "SecurityGroups" : [ { "Ref" : "MyrrixSecurityGroup" } ],
+        "UserData" : { "Fn::Base64" :
+          { "Fn::Join" : [ "", [
+            "-Dstore.aws.accessKey=", { "Ref" : "AccessKey" }, " ",
+            "-Dstore.aws.secretKey=", { "Ref" : "SecretKey" }, " ",
+            "-Dbatch.emr.zone=", { "Ref" : "AWS::Region" }, " ",
+            "-Dbatch.emr.workers.bid=auto ", 
+            "-Dbatch.emr.workers.count=3 ",               
+            "--bucket=", { "Ref" : "MyrrixBucket" }, " ",
+            "--instanceID=", { "Ref" : "MyrrixInstanceID" }, " ",
+            { "Ref" : "CLAdditionalArgs" }
+          ] ] }
+        }
+      }
+    }
+
+  },
+
+  "Outputs" : {
+    "ServingLayerURL" : {
+      "Description" : "Myrrix Serving Layer hostname (#0)",
+      "Value" :  { "Fn::GetAtt" : [ "ServingLayerInstance0", "PublicDnsName" ]}
+    },
+    "ComputationLayerURL" : {
+      "Description" : "Myrrix Computation Layer hostname",
+      "Value" :  { "Fn::GetAtt" : [ "ComputationLayerInstance", "PublicDnsName" ]}
+    }
+  }
+
+}

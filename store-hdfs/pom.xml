@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright Myrrix Ltd
+ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <parent>
+    <groupId>net.myrrix</groupId>
+    <artifactId>myrrix-enterprise</artifactId>
+    <version>1.0.2-SNAPSHOT</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>myrrix-store-hdfs</artifactId>
+  <packaging>jar</packaging>
+  <name>Myrrix Store HDFS</name>
+  <version>1.0.2-SNAPSHOT</version>
+  <description>Myrrix storage implementation for HDFS</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.myrrix</groupId>
+      <artifactId>myrrix-store</artifactId>
+      <version>1.0.2-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+
+</project>

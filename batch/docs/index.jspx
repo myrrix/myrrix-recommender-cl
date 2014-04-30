@@ -1,0 +1,227 @@
+<jsp:root xmlns:jsp="http://java.sun.com/JSP/Page" version="2.1">
+<!--
+ Copyright Myrrix Ltd
+ -->
+<jsp:directive.page import="net.myrrix.store.Store"/>
+<jsp:directive.page import="net.myrrix.batch.PeriodicRunner"/>
+<jsp:directive.page import="net.myrrix.batch.GenerationState"/>
+<jsp:directive.page import="net.myrrix.batch.MyrrixStepState"/>
+<jsp:directive.page import="net.myrrix.batch.MyrrixStepStatus"/>
+<jsp:directive.page import="net.myrrix.batch.PeriodicRunnerState"/>
+<jsp:directive.page import="java.net.URI"/>
+<jsp:directive.page import="java.text.DateFormat"/>
+<jsp:directive.page import="java.text.NumberFormat"/>
+<jsp:directive.page import="java.util.Date"/>
+<jsp:directive.page import="java.util.regex.Pattern"/>
+<jsp:directive.page contentType="text/html"/>
+<jsp:directive.page session="false"/>
+<jsp:text><![CDATA[<!DOCTYPE html>]]></jsp:text>
+<html>
+<jsp:text><![CDATA[<!-- Copyright Myrrix. See myrrix.com/legal for license. -->]]></jsp:text>
+<head>
+<title>Myrrix Computation Layer</title>
+<style type="text/css"><![CDATA[
+body {background-color:#202020}
+body,p,th,td,h1,h2,h3 {font-family:"Gill Sans","Gill Sans MT",Helvetica,sans-serif;font-weight:300;color:white}
+a {text-decoration:none}
+table,th,td {border:1px dotted black}
+th,td {padding:5px;white-space:nowrap;vertical-align:top}
+td {text-align:right}
+table.layout > tbody > tr > th, table.layout > tbody > tr > td, table.layout {border:0;padding:0;text-align:left}
+table {border-collapse:collapse}
+form {margin:0;padding:0}
+h1,h2,h3,a {color:#FFBD21}
+h1,h2,h3 {text-transform:uppercase}
+hr {margin:20px 0 10px 0}
+input {width:70px}
+.meter {padding:0;vertical-align:middle}
+.meter > span {display:block;height:100%;background-color:skyblue;position:relative;overflow:hidden}
+]]></style>
+<script type="text/javascript"><![CDATA[
+function confirmAndPost(formName) {
+  if (confirm("Are you sure?")) {
+    document.forms[formName].submit();
+    return true;
+  } else {
+    return false;
+  }
+}
+]]></script>
+</head>
+
+<jsp:declaration>
+private static final Pattern COMMA = Pattern.compile(",");
+private static String formatShort(Date date) {
+  return date == null ? "" : DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(date);
+}
+private static String formatPercent(float pct) {
+  return Float.isNaN(pct) ? "0%" : NumberFormat.getPercentInstance().format(pct);
+}
+private static String getHexColor(MyrrixStepStatus status) {
+  switch (status) {
+    case COMPLETED:
+      return "green";
+    case FAILED:
+      return "red";
+    case CANCELLED:
+      return "yellow";
+    default:
+      return "white";
+  }
+}
+</jsp:declaration>
+
+<body>
+<div style="width:800px;margin-left:auto;margin-right:auto;padding:10px">
+
+<h1>Myrrix Computation Layer</h1>
+
+<jsp:scriptlet>
+PeriodicRunner periodicRunner = (PeriodicRunner) application.getAttribute(InitListener.PERIODIC_RUNNER_KEY);
+pageContext.setAttribute("periodicRunner", periodicRunner);
+pageContext.setAttribute("storeManagementURI", Store.get().getManagementURI());
+pageContext.setAttribute("mapredManagementURI", periodicRunner.getState().getManagementURI());
+</jsp:scriptlet>
+
+<table class="layout" style="width:100%"><tr>
+<td style="width:70%">
+  <h2>Configuration</h2>
+  <table>
+    <tr><td>Bucket</td><td style="text-align:left"><code>${periodicRunner.config.bucket}</code></td>
+        <td>Data Threshold</td><td style="text-align:left">${periodicRunner.config.dataThresholdMB} MB</td></tr>
+    <tr><td>Instance ID</td><td style="text-align:left"><code>${periodicRunner.config.instanceID}</code></td>
+        <td>Time Threshold</td><td style="text-align:left">${periodicRunner.config.timeThresholdMin} min</td></tr>
+    <tr><td>Recommendations?</td><td style="text-align:left"><code>${periodicRunner.config.recommend}</code></td>
+        <td>Cluster?</td><td style="text-align:left"><code>${periodicRunner.config.cluster}</code></td></tr>
+    <tr><td>Item Similarity?</td><td style="text-align:left"><code>${periodicRunner.config.makeItemSimilarity}</code></td><td colspan="2"/></tr>
+  </table>
+</td>
+<td style="width:30%">
+  <h2>Management</h2>
+  <table>
+    <tr><td>Storage</td><td style="text-align:left"><a href="${storeManagementURI}" target="_blank">Console</a></td></tr>
+    <tr><td>Map Reduce</td><td style="text-align:left"><a href="${mapredManagementURI}" target="_blank">Console</a></td></tr>
+    <tr><td>Myrrix</td><td style="text-align:left"><a href="/log.txt" target="_blank">Logs</a></td></tr>
+  </table>
+</td>
+</tr></table>
+
+<hr/>
+
+<h2>Generations</h2>
+
+<table style="width:100%">
+  <tr>
+    <th>Name</th>
+    <th>Status</th>
+    <th>Start</th>
+    <th style="width:50px">Map %</th>
+    <th style="width:50px">Reduce %</th>
+    <th>End</th>
+  </tr>
+  <jsp:scriptlet>
+    PeriodicRunnerState periodicRunnerState = periodicRunner.getState();
+    if (!periodicRunnerState.isRunning()) {
+      Date nextScheduledRun = periodicRunnerState.getNextScheduledRun();
+      pageContext.setAttribute("nextScheduledRun",
+                               nextScheduledRun == null ? "" : formatShort(nextScheduledRun));
+      pageContext.setAttribute("currentGenerationMB", periodicRunnerState.getCurrentGenerationMB());
+  </jsp:scriptlet>
+  <tr>
+    <td colspan="2" style="background-color:black;text-align:left">
+      <span style="font-style:italic">Next Generation (${currentGenerationMB} MB written)</span>
+      &amp;middot;
+      <form name="periodicRunnerForceRun" action="/periodicRunner/forceRun" method="POST" style="display:inline">
+        <a href="javascript:confirmAndPost('periodicRunnerForceRun')">Force Run</a>
+      </form>
+    </td>
+    <td style="background-color:black;font-style:italic">${nextScheduledRun}</td>
+    <td colspan="3" style="background-color:black">&amp;nbsp;</td>
+  </tr>
+  <jsp:scriptlet>
+    }
+  </jsp:scriptlet>
+  <jsp:scriptlet>
+    for (GenerationState generationState : periodicRunner.getState().getGenerationStates()) {
+      pageContext.setAttribute("generationState", generationState);
+      pageContext.setAttribute("statusHexColor", getHexColor(generationState.getStatus()));
+      pageContext.setAttribute("formattedStartDateTime", formatShort(generationState.getStartTime()));
+      pageContext.setAttribute("formattedEndDateTime", formatShort(generationState.getEndTime()));
+  </jsp:scriptlet>
+  <tr>
+    <td style="background-color:black;text-align:left">
+      <strong>Generation ${generationState.generationID}</strong>
+      <jsp:scriptlet>
+        if (generationState.isRunning()) {
+      </jsp:scriptlet>
+      &amp;middot;
+      <form name="periodicRunnerInterrupt" action="/periodicRunner/interrupt" method="POST" style="display:inline">
+        <a href="javascript:confirmAndPost('periodicRunnerInterrupt')">Interrupt</a>
+      </form>
+      <jsp:scriptlet>
+        }
+      </jsp:scriptlet>
+    </td>
+    <td style="background-color:black;text-align:center;color:${statusHexColor}">${generationState.status}</td>
+    <td style="background-color:black">${formattedStartDateTime}</td>
+    <td colspan="2" style="background-color:black">&amp;nbsp;</td>
+    <td style="background-color:black">${formattedEndDateTime}</td>
+  </tr>
+  <jsp:scriptlet>
+    for (MyrrixStepState stepState : generationState.getStepStates()) {
+      pageContext.setAttribute("statusHexColor", getHexColor(stepState.getStatus()));
+      pageContext.setAttribute("stepState", stepState);
+      pageContext.setAttribute("formattedStartDateTime", formatShort(stepState.getStartTime()));
+      pageContext.setAttribute("formattedEndDateTime", formatShort(stepState.getEndTime()));
+      URI managementURI = stepState.getManagementURI();
+      pageContext.setAttribute("stepManagementURI", managementURI);
+      pageContext.setAttribute("mapProgress", formatPercent(stepState.getMapProgress()));
+      pageContext.setAttribute("reduceProgress", formatPercent(stepState.getReduceProgress()));
+      String stepStateName = stepState.getName();
+      pageContext.setAttribute("stepStateName", stepStateName);
+  </jsp:scriptlet>
+  <tr>
+    <td>
+    <jsp:scriptlet>
+      if (managementURI == null) {
+    </jsp:scriptlet>
+    ${stepState.name}
+    <jsp:scriptlet>
+      } else {
+    </jsp:scriptlet>
+    <a href="${stepManagementURI}" target="_blank">
+      <jsp:scriptlet>
+        if (stepStateName.contains(",")) {
+          for (CharSequence name : COMMA.split(stepStateName)) {
+            out.append(name).append("&lt;br/&gt;");
+          }
+        } else {
+      </jsp:scriptlet>
+      ${stepStateName}
+      <jsp:scriptlet>
+        }
+      </jsp:scriptlet>
+    </a>
+    <jsp:scriptlet>
+      }
+    </jsp:scriptlet>
+    </td>
+    <td style="text-align:center;color:${statusHexColor}">${stepState.status}</td>
+    <td>${formattedStartDateTime}</td>
+    <td class="meter"><span style="width:${mapProgress}">&amp;nbsp;</span></td>
+    <td class="meter"><span style="width:${reduceProgress}">&amp;nbsp;</span></td>
+    <td>${formattedEndDateTime}</td>
+  </tr>
+  <jsp:scriptlet>
+      }
+    }
+  </jsp:scriptlet>
+</table>
+
+<p>&amp;copy; <a href="http://myrrix.com" target="_blank">Myrrix Ltd</a>, except for included third-party open source software.
+Full details of licensing at <a href="http://myrrix.com/legal/" target="_blank">http://myrrix.com/legal/</a></p>
+
+</div>
+</body>
+</html>
+</jsp:root>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright Myrrix Ltd
+ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <parent>
+    <groupId>net.myrrix</groupId>
+    <artifactId>myrrix-enterprise</artifactId>
+    <version>1.0.2-SNAPSHOT</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>myrrix-batch</artifactId>
+  <packaging>jar</packaging>
+  <name>Myrrix Batch</name>
+  <version>1.0.2-SNAPSHOT</version>
+  <description>Myrrix MapReduce-based batch processing abstraction</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.myrrix</groupId>
+      <artifactId>myrrix-store</artifactId>
+      <version>1.0.2-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat</groupId>
+      <artifactId>tomcat-catalina</artifactId>
+      <version>${tomcat.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat</groupId>
+      <artifactId>tomcat-coyote</artifactId>
+      <version>${tomcat.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat</groupId>
+      <artifactId>tomcat-jasper</artifactId>
+      <version>${tomcat.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.eclipse.jdt.core.compiler</groupId>
+          <artifactId>ecj</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.lexicalscope.jewelcli</groupId>
+      <artifactId>jewelcli</artifactId>
+      <version>${jewelcli.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.myrrix</groupId>
+      <artifactId>myrrix-common</artifactId>
+      <version>1.0.2-SNAPSHOT</version>
+      <scope>test</scope>
+      <type>test-jar</type>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target name="precompile-jspx">
+                <typedef resource="org/apache/catalina/ant/catalina.tasks"/>
+                <jasper validateXml="false"
+                        failonerror="true"
+                        listerrors="true"
+                        trimspaces="true"
+                        uriroot="docs"
+                        outputDir="gen"
+                        package="net.myrrix.batch.web"
+                        xpoweredBy="false"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-jasper</artifactId>
+            <version>${tomcat.version}</version>
+            <exclusions>
+              <exclusion>
+                <groupId>org.eclipse.jdt.core.compiler</groupId>
+                <artifactId>ecj</artifactId>
+              </exclusion>
+            </exclusions>
+          </dependency>
+          <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-catalina-ant</artifactId>
+            <version>${tomcat.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>gen</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

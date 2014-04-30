@@ -1,0 +1,27 @@
+"ElasticLoadBalancer" : {
+  "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+  "Properties" : {
+    "AvailabilityZones" : { "Fn::GetAZs" : "" },        
+    "Instances" : [ 
+      { "Ref" : "ServingLayerInstance0" }, 
+      { "Ref" : "ServingLayerInstance1" }, 
+      { "Ref" : "ServingLayerInstance2" } 
+    ],
+    "LBCookieStickinessPolicy" : [ {
+      "PolicyName" : "SLCookiePolicy",
+      "CookieExpirationPeriod" : "3600"
+    } ],
+    "Listeners" : [ { "LoadBalancerPort" : "80",
+      "InstancePort" : "80",
+      "Protocol" : "HTTP",
+      "PolicyNames" : [ "SLCookiePolicy" ]
+    } ],
+    "HealthCheck" : {
+      "Target" : "HTTP:80/status.jspx",
+      "HealthyThreshold" : "3",
+      "UnhealthyThreshold" : "3",
+      "Interval" : "60",
+      "Timeout" : "5"
+    }
+  }
+},

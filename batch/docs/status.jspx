@@ -1,0 +1,57 @@
+<jsp:root xmlns:jsp="http://java.sun.com/JSP/Page" version="2.1">
+<!--
+ Copyright Myrrix Ltd
+ -->
+<jsp:directive.page import="net.myrrix.batch.PeriodicRunner"/>
+<jsp:directive.page import="net.myrrix.batch.GenerationState"/>
+<jsp:directive.page import="net.myrrix.batch.MyrrixStepState"/>
+<jsp:directive.page contentType="application/xml"/>
+<jsp:directive.page session="false"/>
+<jsp:text><![CDATA[<?xml version="1.0" encoding="UTF-8"?>]]></jsp:text>
+<jsp:scriptlet>
+PeriodicRunner periodicRunner = (PeriodicRunner) application.getAttribute(InitListener.PERIODIC_RUNNER_KEY);
+pageContext.setAttribute("periodicRunner", periodicRunner);
+</jsp:scriptlet>
+<status>
+  <configuration>
+    <bucket>${periodicRunner.config.bucket}</bucket>
+    <instanceID>${periodicRunner.config.instanceID}</instanceID>
+    <data>${periodicRunner.config.dataThresholdMB}</data>
+    <time>${periodicRunner.config.timeThresholdMin}</time>
+    <recommendations>${periodicRunner.config.recommend}</recommendations>
+    <itemSimilarity>${periodicRunner.config.makeItemSimilarity}</itemSimilarity>
+    <cluster>${periodicRunner.config.cluster}</cluster>
+  </configuration>
+  <generations>
+    <jsp:scriptlet>
+      for (GenerationState generationState : periodicRunner.getState().getGenerationStates()) {
+        pageContext.setAttribute("generationState", generationState);
+    </jsp:scriptlet>
+    <generation>
+      <id>${generationState.generationID}</id>
+      <startTime>${generationState.startTime}</startTime>
+      <endTime>${generationState.endTime}</endTime>
+      <steps>
+        <jsp:scriptlet>
+        for (MyrrixStepState stepState : generationState.getStepStates()) {
+          pageContext.setAttribute("stepState", stepState);
+        </jsp:scriptlet>
+        <step>
+          <name>${stepState.name}</name>
+          <status>${stepState.status}</status>
+          <startTime>${stepState.startTime}</startTime>
+          <endTime>${stepState.endTime}</endTime>
+          <mapProgress>${stepState.mapProgress}</mapProgress>
+          <reduceProgress>${stepState.reduceProgress}</reduceProgress>
+        </step>
+        <jsp:scriptlet>
+        }
+        </jsp:scriptlet>
+      </steps>
+    </generation>
+    <jsp:scriptlet>
+      }
+    </jsp:scriptlet>
+  </generations>
+</status>
+</jsp:root>

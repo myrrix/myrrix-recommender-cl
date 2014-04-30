@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright Myrrix Ltd
+ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <parent>
+    <groupId>net.myrrix</groupId>
+    <artifactId>myrrix-enterprise</artifactId>
+    <version>1.0.2-SNAPSHOT</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>myrrix-batch-emr</artifactId>
+  <packaging>jar</packaging>
+  <name>Myrrix Batch EMR</name>
+  <version>1.0.2-SNAPSHOT</version>
+  <description>Myrrix MapReduce-based batch processing implemented for Amazon EMR</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.myrrix</groupId>
+      <artifactId>myrrix-batch</artifactId>
+      <version>1.0.2-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>net.myrrix</groupId>
+      <artifactId>myrrix-store-s3</artifactId>
+      <version>1.0.2-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <finalName>myrrix-computation-aws-${project.version}</finalName>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <filters>
+                <filter>
+                  <artifact>com.amazonaws:aws-java-sdk</artifact>
+                  <excludes>
+                    <exclude>com/amazonaws/services/autoscaling/**</exclude>
+                    <exclude>com/amazonaws/services/cloudformation/**</exclude>
+                    <exclude>com/amazonaws/services/cloudfront/**</exclude>
+                    <exclude>com/amazonaws/services/cloudsearch/**</exclude>
+                    <exclude>com/amazonaws/services/cloudwatch/**</exclude>
+                    <exclude>com/amazonaws/services/datapipeline/**</exclude>
+                    <exclude>com/amazonaws/services/directconnect/**</exclude>
+                    <exclude>com/amazonaws/services/dynamodb/**</exclude>
+                    <exclude>com/amazonaws/services/dynamodbv2/**</exclude>
+                    <exclude>com/amazonaws/services/elasticbeanstalk/**</exclude>
+                    <exclude>com/amazonaws/services/elasticache/**</exclude>
+                    <exclude>com/amazonaws/services/elasticloadbalancing/**</exclude>
+                    <exclude>com/amazonaws/services/elastictranscoder/**</exclude>
+                    <exclude>com/amazonaws/services/glacier/**</exclude>
+                    <exclude>com/amazonaws/services/identitymanagement/**</exclude>
+                    <exclude>com/amazonaws/services/importexport/**</exclude>
+                    <exclude>com/amazonaws/services/opsworks/**</exclude>
+                    <exclude>com/amazonaws/services/rds/**</exclude>
+                    <exclude>com/amazonaws/services/redshift/**</exclude>
+                    <exclude>com/amazonaws/services/route53/**</exclude>
+                    <exclude>com/amazonaws/services/simpledb/**</exclude>
+                    <exclude>com/amazonaws/services/simpleemail/**</exclude>
+                    <exclude>com/amazonaws/services/simpleworkflow/**</exclude>
+                    <exclude>com/amazonaws/services/sns/**</exclude>
+                    <exclude>com/amazonaws/services/sqs/**</exclude>
+                    <exclude>com/amazonaws/services/storagegateway/**</exclude>
+                    <exclude>com/amazonaws/services/support/**</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.apache.hadoop:hadoop-core</artifact>
+                  <excludes>
+                    <exclude>webapps/**</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>com.lexicalscope.jewelcli:jewelcli</artifact>
+                  <excludes>
+                    <exclude>uk/co/flamingpenguin/**</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.apache.mahout:mahout-core</artifact>
+                  <includes>
+                    <include>org/apache/mahout/cf/taste/**</include>
+                    <include>org/apache/mahout/common/**</include>
+                    <include>org/apache/mahout/math/*.class</include>
+                  </includes>
+                </filter>
+              </filters>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <manifestEntries>
+                    <Main-Class>net.myrrix.batch.web.Runner</Main-Class>
+                  </manifestEntries>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>META-INF/myrrix/LICENSE.txt</resource>
+                  <file>../LICENSE.txt</file>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>META-INF/myrrix/NOTICE.txt</resource>
+                  <file>../NOTICE.txt</file>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

@@ -1,0 +1,85 @@
+{
+
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "Myrrix Serving Layer (stand-alone) CloudFormation configuration",
+
+  "Parameters" : {
+    "SLInstanceType" : {
+      "Description" : "Type of EC2 instance to launch",
+      "Type" : "String",
+      "Default" : "m1.medium",
+      "AllowedValues" : [
+        "m1.medium", "m1.large", "m1.xlarge", "m2.xlarge", "m2.2xlarge", "m2.4xlarge",
+        "m3.xlarge", "m3.2xlarge", "c1.medium", "c1.xlarge", "cc2.8xlarge", "cr1.8xlarge", 
+        "hi1.4xlarge", "hs1.8xlarge"
+      ]
+    },
+    "AdditionalArgs" : {
+      "Description" : "Additional arguments to the Myrrix Serving Layer. Optional. Due to Amazon limitations, leave value as a single space for no arguments.",
+      "Type" : "String",
+      "Default" : " "
+    }
+   },
+
+  "Mappings" : {
+
+    "ServingLayerRegionMap" : {
+      "us-east-1" :      { "AMI" : "ami-78641b11" },
+      "us-west-1" :      { "AMI" : "ami-72597137" },
+      "us-west-2" :      { "AMI" : "ami-9573e0a5" },
+      "eu-west-1" :      { "AMI" : "ami-47eef233" },
+      "ap-southeast-1" : { "AMI" : "ami-14a6ef46" },
+      "ap-southeast-2" : { "AMI" : "ami-0d2bb837" },
+      "ap-northeast-1" : { "AMI" : "ami-3d17833c" },
+      "sa-east-1" :      { "AMI" : "ami-4c0faa51  " }
+    }
+
+  },
+
+  "Resources" : {
+
+    "MyrrixSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "HTTP/HTTPS/SSH access",
+        "SecurityGroupIngress" : [
+          { "IpProtocol" : "tcp",
+            "FromPort" : "80",
+            "ToPort" : "80",
+            "CidrIp" : "0.0.0.0/0"
+          },
+          { "IpProtocol" : "tcp",
+            "FromPort" : "443",
+            "ToPort" : "443",
+            "CidrIp" : "0.0.0.0/0"
+          },
+          { "IpProtocol" : "tcp",
+            "FromPort" : "22",
+            "ToPort" : "22",
+            "CidrIp" : "0.0.0.0/0"
+          }
+        ]
+      }
+    },
+
+    "ServingLayerInstance" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "ImageId" : { "Fn::FindInMap" : [ "ServingLayerRegionMap", { "Ref" : "AWS::Region" }, "AMI" ]},
+        "InstanceType" : { "Ref" : "SLInstanceType" },
+        "SecurityGroups" : [ { "Ref" : "MyrrixSecurityGroup" } ],
+        "UserData" : { "Fn::Base64" : { "Ref" : "AdditionalArgs" } }
+      }
+    }
+
+  },
+
+  "Outputs" : {
+    "ServingLayerURL" : {
+      "Description" : "Myrrix Serving Layer hostname",
+      "Value" :  { "Fn::GetAtt" : [ "ServingLayerInstance", "PublicDnsName" ]}
+    }
+  }
+
+}
